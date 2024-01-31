@@ -17,7 +17,7 @@ Closes #<issue number here>.
 ### Checklist
 - [ ] My code adheres to the [CONTRIBUTING GUIDE](https://github.com/aws/aws-cdk/blob/main/CONTRIBUTING.md) and [DESIGN GUIDELINES](https://github.com/aws/aws-cdk/blob/main/docs/DESIGN_GUIDELINES.md)
 
-<!--Does this PR includes breaking changes? If yes, list them here in the following format (notice how multiple breaking changes should be formatted):
+<!--Does this PR includes breaking changes? If it does, list them here in the following format (notice how multiple breaking changes should be formatted):
 
   ```
   BREAKING CHANGE: Description of what broke and how to achieve this behavior now
