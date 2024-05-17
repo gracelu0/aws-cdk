@@ -105,6 +105,7 @@ export const PIPELINE_REDUCE_ASSET_ROLE_TRUST_SCOPE = '@aws-cdk/pipelines:reduce
 export const EKS_NODEGROUP_NAME = '@aws-cdk/aws-eks:nodegroupNameAttribute';
 export const EBS_DEFAULT_GP3 = '@aws-cdk/aws-ec2:ebsDefaultGp3Volume';
 export const ECS_REMOVE_DEFAULT_DEPLOYMENT_ALARM = '@aws-cdk/aws-ecs:removeDefaultDeploymentAlarm';
+export const CLOUDFRONT_USE_ORIGIN_ACCESS_CONTROL = '@aws-cdk/aws-cloudfront:useOriginAccessControl';
 
 export const FLAGS: Record<string, FlagInfo> = {
   //////////////////////////////////////////////////////////////////////
@@ -1070,7 +1071,7 @@ export const FLAGS: Record<string, FlagInfo> = {
     type: FlagType.ApiDefault,
     summary: 'When enabled, the default volume type of the EBS volume will be GP3',
     detailsMd: `
-      When this featuer flag is enabled, the default volume type of the EBS volume will be \`EbsDeviceVolumeType.GENERAL_PURPOSE_SSD_GP3\`.
+      When this feature flag is enabled, the default volume type of the EBS volume will be \`EbsDeviceVolumeType.GENERAL_PURPOSE_SSD_GP3\`.
     `,
     introducedIn: { v2: '2.140.0' },
     recommendedValue: true,
@@ -1087,6 +1088,18 @@ export const FLAGS: Record<string, FlagInfo> = {
     introducedIn: { v2: '2.143.0' },
     recommendedValue: true,
     compatibilityWithOldBehaviorMd: 'Set AWS::ECS::Service \'DeploymentAlarms\' manually to restore the previous behavior.',
+  },
+
+  //////////////////////////////////////////////////////////////////////
+  [CLOUDFRONT_USE_ORIGIN_ACCESS_CONTROL]: {
+    type: FlagType.BugFix,
+    summary: 'When enabled, an origin access control will be created automatically when a new S3 origin is created.',
+    detailsMd: `
+      When this feature flag is enabled, an origin access control will be created automatically when a new \`S3Origin\` is created instead
+      of an origin access identity (legacy).
+    `,
+    introducedIn: { v2: 'V2NEXT' },
+    recommendedValue: true,
   },
 };
 

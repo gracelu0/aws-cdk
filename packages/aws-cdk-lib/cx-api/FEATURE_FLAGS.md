@@ -70,7 +70,11 @@ Flags come in three types:
 | [@aws-cdk/aws-eks:nodegroupNameAttribute](#aws-cdkaws-eksnodegroupnameattribute) | When enabled, nodegroupName attribute of the provisioned EKS NodeGroup will not have the cluster name prefix. | 2.139.0 | (fix) |
 | [@aws-cdk/aws-ec2:ebsDefaultGp3Volume](#aws-cdkaws-ec2ebsdefaultgp3volume) | When enabled, the default volume type of the EBS volume will be GP3 | 2.140.0 | (default) |
 | [@aws-cdk/pipelines:reduceAssetRoleTrustScope](#aws-cdkpipelinesreduceassetroletrustscope) | Remove the root account principal from PipelineAssetsFileRole trust policy | 2.141.0 | (default) |
+<<<<<<< HEAD
 | [@aws-cdk/aws-ecs:removeDefaultDeploymentAlarm](#aws-cdkaws-ecsremovedefaultdeploymentalarm) | When enabled, remove default deployment alarm settings | 2.143.0 | (default) |
+=======
+| [@aws-cdk/aws-cloudfront:useOriginAccessControl](#aws-cdkaws-cloudfrontuseoriginaccesscontrol) | When enabled, use Origin Access Control rather than Origin Access Identity | V2NEXT | (fix) |
+>>>>>>> 386904900a (wip oac)
 
 <!-- END table -->
 
@@ -131,7 +135,11 @@ The following json shows the current recommended set of flags, as `cdk init` wou
     "@aws-cdk/aws-kms:reduceCrossAccountRegionPolicyScope": true,
     "@aws-cdk/aws-eks:nodegroupNameAttribute": true,
     "@aws-cdk/aws-ec2:ebsDefaultGp3Volume": true,
+<<<<<<< HEAD
     "@aws-cdk/aws-ecs:removeDefaultDeploymentAlarm": true
+=======
+    "@aws-cdk/aws-cloudfront:useOriginAccessControl": true,
+>>>>>>> 386904900a (wip oac)
   }
 }
 ```
@@ -1323,7 +1331,7 @@ When this feature flag is disabled, it will keep the root account principal in t
 
 *When enabled, remove default deployment alarm settings* (default)
 
-When this featuer flag is enabled, remove the default deployment alarm settings when creating a AWS ECS service.
+When this feature flag is enabled, remove the default deployment alarm settings when creating a AWS ECS service.
 
 
 | Since | Default | Recommended |
@@ -1333,5 +1341,19 @@ When this featuer flag is enabled, remove the default deployment alarm settings 
 
 **Compatibility with old behavior:** Set AWS::ECS::Service 'DeploymentAlarms' manually to restore the previous behavior.
 
+
+### @aws-cdk/aws-cloudfront:useOriginAccessControl
+
+*Use Origin Access Control instead of Origin Access Identity* (fix)
+
+When this feature flag is enabled, an origin access control will be created automatically when a new S3 origin is created.
+When this feature flag is disabled, an origin access identity will be created automatically when a new S3 origin is created.
+
+| Since | Default | Recommended |
+| ----- | ----- | ----- |
+| (not in v1) |  |  |
+| V2NEXT | `false` | `true` |
+
+**Compatibility with old behavior:** Disable the feature flag to continue using Origin Access Identity
 
 <!-- END details -->
