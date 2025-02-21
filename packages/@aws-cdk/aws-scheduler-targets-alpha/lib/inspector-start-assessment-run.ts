@@ -1,6 +1,6 @@
 import { IScheduleTarget } from '@aws-cdk/aws-scheduler-alpha';
 import { IRole, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { IAssessmentTemplate } from 'aws-cdk-lib/aws-inspector';
+import { IAssessmentTemplate } from '@aws-cdk/aws-inspector-alpha';
 import { ScheduleTargetBase, ScheduleTargetBaseProps } from './target';
 
 /**

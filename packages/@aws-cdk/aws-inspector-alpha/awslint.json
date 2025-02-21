@@ -1,0 +1,8 @@
+{
+  "exclude": [
+    "props-no-arn-refs:@aws-cdk/aws-inspector-alpha.AssessmentTemplateProps.assessmentTargetArn",
+    "from-method:@aws-cdk/aws-inspector-alpha.AssessmentTemplate",
+    "attribute-tag:@aws-cdk/aws-inspector-alpha.AssessmentTemplate.assessmentTemplateArn",
+    "duration-prop-name:@aws-cdk/aws-inspector-alpha.AssessmentTemplateProps.durationInSeconds"
+  ]
+}
