@@ -1,12 +1,12 @@
-import { Duration, IResource, Resource, Token, Arn, ArnFormat } from 'aws-cdk-lib';
-import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as kms from 'aws-cdk-lib/aws-kms';
-import { CfnSchedule } from 'aws-cdk-lib/aws-scheduler';
-import { addConstructMetadata } from 'aws-cdk-lib/core/lib/metadata-resource';
 import { Construct } from 'constructs';
-import { IScheduleGroup } from './group';
+import { IGroup } from './group';
 import { ScheduleExpression } from './schedule-expression';
+import { CfnSchedule } from './scheduler.generated';
 import { IScheduleTarget } from './target';
+import * as cloudwatch from '../../aws-cloudwatch';
+import * as kms from '../../aws-kms';
+import { Arn, ArnFormat, Duration, IResource, Resource, Token } from '../../core';
+import { addConstructMetadata } from '../../core/lib/metadata-resource';
 
 /**
  * Interface representing a created or an imported `Schedule`.
@@ -27,7 +27,7 @@ export interface ISchedule extends IResource {
   /**
    * The schedule group associated with this schedule.
    */
-  readonly scheduleGroup?: IScheduleGroup;
+  readonly group?: IGroup;
 }
 
 /**
@@ -107,7 +107,7 @@ export interface ScheduleProps {
    *
    * @default - By default a schedule will be associated with the `default` group.
    */
-  readonly group?: IScheduleGroup;
+  readonly group?: IGroup;
 
   /**
    * Indicates whether the schedule is enabled.
@@ -260,7 +260,7 @@ export class Schedule extends Resource implements ISchedule {
   /**
    * The schedule group associated with this schedule.
    */
-  public readonly group?: IScheduleGroup;
+  public readonly group?: IGroup;
 
   /**
    * The arn of the schedule.
@@ -270,7 +270,7 @@ export class Schedule extends Resource implements ISchedule {
   /**
    * The name of the schedule.
    */
-  public readonly scheduleName: string;
+  public readonly scheduleName?: string;
 
   /**
    * The customer managed KMS key that EventBridge Scheduler will use to encrypt and decrypt your data.
@@ -315,7 +315,7 @@ export class Schedule extends Resource implements ISchedule {
       },
       scheduleExpression: props.schedule.expressionString,
       scheduleExpressionTimezone: props.schedule.timeZone?.timezoneName,
-      groupName: this.group?.scheduleGroupName,
+      groupName: this.group?.groupName,
       state: (props.enabled ?? true) ? 'ENABLED' : 'DISABLED',
       kmsKeyArn: this.key?.keyArn,
       target: {
@@ -339,7 +339,7 @@ export class Schedule extends Resource implements ISchedule {
     this.scheduleArn = this.getResourceArnAttribute(resource.attrArn, {
       service: 'scheduler',
       resource: 'schedule',
-      resourceName: `${this.group?.scheduleGroupName ?? 'default'}/${this.physicalName}`,
+      resourceName: `${this.group?.groupName ?? 'default'}/${this.physicalName}`,
     });
   }
 

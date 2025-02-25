@@ -1,6 +1,6 @@
+import { IAssessmentTemplate } from '@aws-cdk/aws-inspector-alpha';
 import { IScheduleTarget } from '@aws-cdk/aws-scheduler-alpha';
 import { IRole, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { IAssessmentTemplate } from '@aws-cdk/aws-inspector-alpha';
 import { ScheduleTargetBase, ScheduleTargetBaseProps } from './target';
 
 /**
@@ -8,7 +8,7 @@ import { ScheduleTargetBase, ScheduleTargetBaseProps } from './target';
  */
 export class InspectorStartAssessmentRun extends ScheduleTargetBase implements IScheduleTarget {
   constructor(
-    template: IAssessmentTemplate,
+    private readonly template: IAssessmentTemplate,
     props: ScheduleTargetBaseProps = {},
   ) {
     super(props, template.assessmentTemplateArn);
@@ -17,7 +17,7 @@ export class InspectorStartAssessmentRun extends ScheduleTargetBase implements I
   protected addTargetActionToRole(role: IRole): void {
     role.addToPrincipalPolicy(new PolicyStatement({
       actions: ['inspector:StartAssessmentRun'],
-      resources: ['*'],
+      resources: [this.template.assessmentTemplateArn],
     }));
   }
 }

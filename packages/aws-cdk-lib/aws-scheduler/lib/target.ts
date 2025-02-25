@@ -1,7 +1,7 @@
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { CfnSchedule } from 'aws-cdk-lib/aws-scheduler';
 import { ScheduleTargetInput } from './input';
 import { ISchedule } from './schedule';
+import { CfnSchedule } from './scheduler.generated';
+import * as iam from '../../aws-iam';
 
 /**
  * Interface representing a Event Bridge Schedule Target.

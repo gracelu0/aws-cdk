@@ -1,10 +1,13 @@
-import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import { CfnScheduleGroup } from 'aws-cdk-lib/aws-scheduler';
-import { Arn, ArnFormat, Aws, IResource, Names, RemovalPolicy, Resource, Stack } from 'aws-cdk-lib/core';
-import { addConstructMetadata } from 'aws-cdk-lib/core/lib/metadata-resource';
 import { Construct } from 'constructs';
+import { CfnScheduleGroup } from './scheduler.generated';
+import * as cloudwatch from '../../aws-cloudwatch';
+import * as iam from '../../aws-iam';
+import { Arn, ArnFormat, Aws, IResource, Names, RemovalPolicy, Resource, Stack } from '../../core';
+import { addConstructMetadata } from '../../core/lib/metadata-resource';
 
+/**
+ * Properties for a Schedule Group
+ */
 export interface ScheduleGroupProps {
   /**
    * The name of the schedule group.
@@ -13,7 +16,7 @@ export interface ScheduleGroupProps {
    *
    * @default - A unique name will be generated
    */
-  readonly scheduleGroupName?: string;
+  readonly groupName?: string;
 
   /**
    * The removal policy for the group. If the group is removed also all schedules are removed.
@@ -23,20 +26,23 @@ export interface ScheduleGroupProps {
   readonly removalPolicy?: RemovalPolicy;
 }
 
-export interface IScheduleGroup extends IResource {
+/**
+ * Represents a schedule group
+ */
+export interface IGroup extends IResource {
   /**
    * The name of the schedule group
    *
    * @attribute
    */
-  readonly scheduleGroupName: string;
+  readonly groupName: string;
 
   /**
    * The arn of the schedule group
    *
    * @attribute
    */
-  readonly scheduleGroupArn: string;
+  readonly groupArn: string;
 
   /**
    * Return the given named metric for this group schedules
@@ -121,20 +127,20 @@ export interface IScheduleGroup extends IResource {
   grantDeleteSchedules(identity: iam.IGrantable): iam.Grant;
 }
 
-abstract class ScheduleGroupBase extends Resource implements IScheduleGroup {
+abstract class GroupBase extends Resource implements IGroup {
   /**
    * The name of the schedule group
    *
    * @attribute
    */
-  public abstract readonly scheduleGroupName: string;
+  public abstract readonly groupName: string;
 
   /**
    * The arn of the schedule group
    *
    * @attribute
    */
-  public abstract readonly scheduleGroupArn: string;
+  public abstract readonly groupArn: string;
 
   /**
    * Return the given named metric for this group schedules
@@ -145,7 +151,7 @@ abstract class ScheduleGroupBase extends Resource implements IScheduleGroup {
     return new cloudwatch.Metric({
       namespace: 'AWS/Scheduler',
       metricName,
-      dimensionsMap: { ScheduleGroup: this.scheduleGroupName },
+      dimensionsMap: { ScheduleGroup: this.groupName },
       statistic: 'sum',
       ...props,
     }).attachTo(this);
@@ -236,7 +242,7 @@ abstract class ScheduleGroupBase extends Resource implements IScheduleGroup {
     return iam.Grant.addToPrincipal({
       grantee,
       actions,
-      resourceArns: [this.scheduleGroupArn],
+      resourceArns: [this.groupArn],
       scope: this,
     });
   }
@@ -248,7 +254,7 @@ abstract class ScheduleGroupBase extends Resource implements IScheduleGroup {
       partition: Aws.PARTITION,
       service: 'scheduler',
       resource: 'schedule',
-      resourceName: this.scheduleGroupName + '/' + scheduleName,
+      resourceName: this.groupName + '/' + scheduleName,
     });
   }
 
@@ -289,10 +295,10 @@ abstract class ScheduleGroupBase extends Resource implements IScheduleGroup {
   }
 }
 /**
- * A schedule group.
+ * A Schedule Group.
  * @resource AWS::Scheduler::ScheduleGroup
  */
-export class ScheduleGroup extends ScheduleGroupBase {
+export class Group extends GroupBase {
   /**
    * Import an external group by ARN.
    *
@@ -300,12 +306,12 @@ export class ScheduleGroup extends ScheduleGroupBase {
    * @param id construct id
    * @param groupArn the ARN of the group to import (e.g. `arn:aws:scheduler:region:account-id:schedule-group/group-name`)
    */
-  public static fromGroupArn(scope: Construct, id: string, groupArn: string): IScheduleGroup {
+  public static fromGroupArn(scope: Construct, id: string, groupArn: string): IGroup {
     const arnComponents = Stack.of(scope).splitArn(groupArn, ArnFormat.SLASH_RESOURCE_NAME);
     const groupName = arnComponents.resourceName!;
-    class Import extends ScheduleGroupBase {
-      scheduleGroupName = groupName;
-      scheduleGroupArn = groupArn;
+    class Import extends GroupBase {
+      groupName = groupName;
+      groupArn = groupArn;
     }
     return new Import(scope, id);
   }
@@ -316,8 +322,8 @@ export class ScheduleGroup extends ScheduleGroupBase {
    * @param scope construct scope
    * @param id construct id
    */
-  public static fromDefaultGroup(scope: Construct, id: string): IScheduleGroup {
-    return ScheduleGroup.fromGroupName(scope, id, 'default');
+  public static fromDefaultGroup(scope: Construct, id: string): IGroup {
+    return Group.fromGroupName(scope, id, 'default');
   }
 
   /**
@@ -327,13 +333,13 @@ export class ScheduleGroup extends ScheduleGroupBase {
    * @param id construct id
    * @param groupName the name of the existing group to import
    */
-  public static fromGroupName(scope: Construct, id: string, groupName: string): IScheduleGroup {
+  public static fromGroupName(scope: Construct, id: string, groupName: string): IGroup {
     const groupArn = Stack.of(scope).formatArn({
       service: 'scheduler',
       resource: 'schedule-group',
       resourceName: groupName,
     });
-    return ScheduleGroup.fromGroupArn(scope, id, groupArn);
+    return Group.fromGroupArn(scope, id, groupArn);
   }
 
   public readonly groupName: string;
@@ -344,7 +350,7 @@ export class ScheduleGroup extends ScheduleGroupBase {
     // Enhanced CDK Analytics Telemetry
     addConstructMetadata(this, props);
 
-    this.groupName = props?.scheduleGroupName ?? Names.uniqueResourceName(this, {
+    this.groupName = props?.groupName ?? Names.uniqueResourceName(this, {
       maxLength: 64,
       separator: '-',
     });
