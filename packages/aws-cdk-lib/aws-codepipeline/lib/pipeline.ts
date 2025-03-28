@@ -528,9 +528,13 @@ export class Pipeline extends PipelineBase {
     this.artifactBucket = propsBucket;
 
     // If a role has been provided, use it - otherwise, create a role.
+    const isRemoveRootPrincipal = FeatureFlags.of(this).isEnabled(cxapi.PIPELINE_REDUCE_STAGE_ROLE_TRUST_SCOPE);
+
     this.role = props.role || new iam.Role(this, 'Role', {
       assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
-      roleName: PhysicalName.GENERATE_IF_NEEDED,
+      ...(isRemoveRootPrincipal && {
+        roleName: PhysicalName.GENERATE_IF_NEEDED,
+      }),
     });
 
     const isDefaultV2 = FeatureFlags.of(this).isEnabled(cxapi.CODEPIPELINE_DEFAULT_PIPELINE_TYPE_TO_V2);
@@ -903,7 +907,7 @@ export class Pipeline extends PipelineBase {
     if (!actionRole && this.isAwsOwned(action)) {
       // generate a Role for this specific Action
       const isRemoveRootPrincipal = FeatureFlags.of(this).isEnabled(cxapi.PIPELINE_REDUCE_STAGE_ROLE_TRUST_SCOPE);
-      const roleProps = isRemoveRootPrincipal? {
+      const roleProps = isRemoveRootPrincipal ? {
         assumedBy: new iam.ArnPrincipal(this.role.roleArn), // Allow only the pipeline execution role
       } : {
         assumedBy: new iam.AccountPrincipal(pipelineStack.account),
@@ -967,12 +971,15 @@ export class Pipeline extends PipelineBase {
 
     // generate a role in the other stack, that the Pipeline will assume for executing this action
     const isRemoveRootPrincipal = FeatureFlags.of(this).isEnabled(cxapi.PIPELINE_REDUCE_STAGE_ROLE_TRUST_SCOPE);
-    const roleProps = isRemoveRootPrincipal? {
+    process.stdout.write(`-----ROLENAME: ${this.role.roleName}`);
+    const roleProps = isRemoveRootPrincipal ? {
       assumedBy: new iam.PrincipalWithConditions(
         new iam.AccountPrincipal(pipelineStack.account),
         {
-          IpAddress: {
-            'aws:SourceIp': 'codepipeline.amazonaws.com',
+          ArnLike: {
+            'aws:PrincipalArn': this.role.roleName === undefined
+              ? `arn:*:iam::${pipelineStack.account}:role/*`
+              : `arn:*:iam::${pipelineStack.account}:role/${this.role.roleName}`,
           },
         },
       ),
@@ -981,6 +988,11 @@ export class Pipeline extends PipelineBase {
       assumedBy: new iam.AccountPrincipal(pipelineStack.account),
       roleName: PhysicalName.GENERATE_IF_NEEDED,
     };
+
+    if (isRemoveRootPrincipal && this.role.roleName === undefined) {
+      Annotations.of(this).addWarningV2('@aws-cdk/aws-codepipeline:wildcardRoleTrustPolicy', 'The default trust policy is using a wildcard (*) in the condition key.' +
+        'It is recommended that you either provide a role name or scope down the policy condition by specifying the role name instead of `*`.');
+    }
 
     const ret = new iam.Role(otherAccountStack,
       `${Names.uniqueId(this)}-${stage.stageName}-${action.actionProperties.actionName}-ActionRole`, roleProps);
