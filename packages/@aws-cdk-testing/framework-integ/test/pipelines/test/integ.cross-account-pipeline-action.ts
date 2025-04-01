@@ -81,8 +81,35 @@ class PipelineStack extends Stack {
   constructor(scope: Construct, id: string, sourceBucket: s3.IBucket, props?: StackProps) {
     super(scope, id, props);
 
+    // Using CfnParameter
+    // const roleNameParam = new cdk.CfnParameter(this, 'RoleNameParam', {
+    //   type: 'String',
+    //   default: 'my-pipeline-role-name',
+    // });
+
+    // const pipelineRole = new Role(this, 'PipelineRole', {
+    //   assumedBy: new ServicePrincipal('codepipeline.amazonaws.com'),
+    //   roleName: roleNameParam.valueAsString, // roleName defined by customer
+    // });
+
+    // const importedRole = Role.fromRoleArn(this, 'ImportedRole', `arn:aws:iam::${crossAccount}:role/CodeBuildRole`);
+
+    // const importedRole = Role.fromRoleName(this, 'ImportedPipelineRole', roleNameParam.valueAsString);
+
+    // const lazyRole = new LazyRole(this, 'PipelineRole', {
+    //   assumedBy: new ServicePrincipal('codepipeline.amazonaws.com'),
+    // });
+
+    // Role.customizeRoles(this, {
+    //   preventSynthesis: false,
+    //   usePrecreatedRoles: {
+    //     'Pipeline/Pipeline/Role': 'my-precreated-role-name',
+    //   },
+    // });
+
     const pipelineRole = new Role(this, 'PipelineRole', {
       assumedBy: new ServicePrincipal('codepipeline.amazonaws.com'),
+      roleName: cdk.PhysicalName.GENERATE_IF_NEEDED,
     });
 
     const pipeline = new pipelines.CodePipeline(this, 'Pipeline', {
@@ -129,7 +156,7 @@ const pipelineStack = new PipelineStack(app, 'CdkPipelineInvestigationStack',
   sourceStack.sourceBucket,
   {
     env: {
-      account,
+      account: account,
       region,
     },
   },

@@ -303,8 +303,8 @@ export class Role extends Resource implements IRole {
   /**
    * Return whether the given object is a Role
    */
-  public static isRole(x: any) : x is Role {
-    return x !== null && typeof(x) === 'object' && IAM_ROLE_SYMBOL in x;
+  public static isRole(x: any): x is Role {
+    return x !== null && typeof (x) === 'object' && IAM_ROLE_SYMBOL in x;
   }
 
   /**
@@ -388,6 +388,8 @@ export class Role extends Resource implements IRole {
    */
   public readonly roleName: string;
 
+  public readonly _roleNameExplicitlySet: boolean;
+
   /**
    * Returns the role.
    */
@@ -425,6 +427,7 @@ export class Role extends Resource implements IRole {
       externalIds.push(props.externalId);
     }
 
+    this._roleNameExplicitlySet = !Token.isUnresolved(props.roleName) ? true : false;
     this.assumeRolePolicy = createAssumeRolePolicy(props.assumedBy, externalIds);
     this.managedPolicies.push(...props.managedPolicies || []);
     this.inlinePolicies = props.inlinePolicies || {};
@@ -446,7 +449,7 @@ export class Role extends Resource implements IRole {
       resource: 'role',
       resourceName: config.precreatedRoleName,
     });
-    const importedRole = new ImportedRole(this, 'Import'+id, {
+    const importedRole = new ImportedRole(this, 'Import' + id, {
       roleArn,
       roleName: config.precreatedRoleName ?? id,
       account: Stack.of(this).account,
@@ -454,7 +457,7 @@ export class Role extends Resource implements IRole {
     this.roleName = importedRole.roleName;
     this.roleArn = importedRole.roleArn;
     if (config.enabled) {
-      const role = new PrecreatedRole(this, 'PrecreatedRole'+id, {
+      const role = new PrecreatedRole(this, 'PrecreatedRole' + id, {
         rolePath: this.node.path,
         role: importedRole,
         missing: !config.precreatedRoleName,
@@ -740,6 +743,12 @@ export interface IRole extends IIdentity {
    * @attribute
    */
   readonly roleName: string;
+
+  /**
+   * Whether role name is explicitly set by the user
+   * @internal
+   */
+  readonly _roleNameExplicitlySet?: boolean;
 
   /**
    * Grant the actions defined in actions to the identity Principal on this resource.

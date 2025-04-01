@@ -531,6 +531,73 @@ describe('', () => {
 
         Template.fromStack(stack).resourceCountIs('AWS::KMS::Key', 1);
       });
+
+      test('trust policy with role name is set when reduce role trust scope feature flag is set', () => {
+        const app = new cdk.App();
+        app.node.setContext(cxapi.PIPELINE_REDUCE_STAGE_ROLE_TRUST_SCOPE, true);
+
+        const stack = new cdk.Stack(app, 'PipelineStack', { env: { account: '123456789012' } });
+        const sourceOutput = new codepipeline.Artifact();
+        const customRole = new iam.Role(stack, 'Role', {
+          assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
+          roleName: 'my-custom-pipelinerole-name',
+        });
+        new codepipeline.Pipeline(stack, 'Pipeline', {
+          stages: [
+            {
+              stageName: 'Source',
+              actions: [new FakeSourceAction({ actionName: 'Source', output: sourceOutput })],
+            },
+            {
+              stageName: 'Build',
+              actions: [new FakeBuildAction({ actionName: 'Build', input: sourceOutput })],
+            },
+          ],
+          role: customRole,
+        });
+
+        Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
+          AssumeRolePolicyDocument: {
+            Statement: [
+              {
+                Action: 'sts:AssumeRole',
+                Effect: 'Allow',
+                Principal: {
+                  AWS: {
+                    'Fn::GetAtt': ['Role1ABCC5F0', 'Arn'],
+                  },
+                },
+                Condition: {
+                  ArnLike: {
+                    'aws:PrincipalArn': 'arn:*:iam::370251658761:role/my-custom-pipelinerole-name',
+                  },
+                },
+              },
+            ],
+            Version: '2012-10-17',
+          },
+        });
+      });
+
+      test('warn user to scope down trust policy when reduce role trust scope feature flag is not set', () => {
+        const app = new cdk.App();
+        app.node.setContext(cxapi.PIPELINE_REDUCE_STAGE_ROLE_TRUST_SCOPE, false);
+
+        const stack = new cdk.Stack(app, 'PipelineStack', { env: { account: '123456789012' } });
+        const sourceOutput = new codepipeline.Artifact();
+        new codepipeline.Pipeline(stack, 'Pipeline', {
+          stages: [
+            {
+              stageName: 'Source',
+              actions: [new FakeSourceAction({ actionName: 'Source', output: sourceOutput })],
+            },
+            {
+              stageName: 'Build',
+              actions: [new FakeBuildAction({ actionName: 'Build', input: sourceOutput })],
+            },
+          ],
+        });
+      });
     });
 
     test.each([
@@ -961,7 +1028,7 @@ interface ReusePipelineStackProps extends cdk.StackProps {
 }
 
 class ReusePipelineStack extends cdk.Stack {
-  public constructor(scope: Construct, id: string, props: ReusePipelineStackProps ) {
+  public constructor(scope: Construct, id: string, props: ReusePipelineStackProps) {
     super(scope, id, props);
     const sourceOutput = new codepipeline.Artifact();
     const buildOutput = new codepipeline.Artifact();
@@ -1008,7 +1075,7 @@ class PipelineStack extends cdk.Stack {
   pipeline: codepipeline.Pipeline;
 
   constructor(scope?: Construct, id?: string, props?: PipelineStackProps) {
-    super (scope, id, props);
+    super(scope, id, props);
 
     props?.nestedStackId ? this.nestedStack = new cdk.NestedStack(this, props!.nestedStackId!) : undefined;
     this.pipeline = createPipelineWithSourceAndBuildStages(this.nestedStack || this, props?.pipelineName, props?.pipelineId);

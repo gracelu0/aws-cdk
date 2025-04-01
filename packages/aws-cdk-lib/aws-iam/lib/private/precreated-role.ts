@@ -1,5 +1,5 @@
 import { Construct, Dependable, DependencyGroup } from 'constructs';
-import { Resource, Stack } from '../../../core';
+import { Resource, Stack, Token } from '../../../core';
 import { PolicySynthesizer } from '../../../core/lib/helpers-internal';
 import { addConstructMetadata, MethodMetadata } from '../../../core/lib/metadata-resource';
 import { Grant } from '../grant';
@@ -63,6 +63,8 @@ export class PrecreatedRole extends Resource implements IRole {
   public readonly principalAccount?: string;
   public readonly roleArn: string;
   public readonly roleName: string;
+  public readonly _roleNameExplicitlySet: boolean;
+
   public readonly stack: Stack;
 
   private readonly policySynthesizer: PolicySynthesizer;
@@ -84,6 +86,7 @@ export class PrecreatedRole extends Resource implements IRole {
     this.roleArn = this.role.roleArn;
     this.roleName = this.role.roleName;
     this.stack = this.role.stack;
+    this._roleNameExplicitlySet = !Token.isUnresolved(props.role.roleName) ? true : false;
     const rolePath = props.rolePath ?? this.node.path;
 
     Dependable.implement(this, {

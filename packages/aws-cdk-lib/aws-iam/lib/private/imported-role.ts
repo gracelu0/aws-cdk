@@ -24,6 +24,7 @@ export class ImportedRole extends Resource implements IRole, IComparablePrincipa
   public readonly policyFragment: PrincipalPolicyFragment;
   public readonly roleArn: string;
   public readonly roleName: string;
+  public readonly _roleNameExplicitlySet: boolean;
   private readonly attachedPolicies = new AttachedPolicies();
   private readonly defaultPolicyName?: string;
   private defaultPolicy?: Policy;
@@ -37,6 +38,7 @@ export class ImportedRole extends Resource implements IRole, IComparablePrincipa
 
     this.roleArn = props.roleArn;
     this.roleName = props.roleName;
+    this._roleNameExplicitlySet = !Token.isUnresolved(props.roleName) ? true : false;
     this.policyFragment = new ArnPrincipal(this.roleArn).policyFragment;
     this.defaultPolicyName = props.defaultPolicyName;
     this.principalAccount = props.account;

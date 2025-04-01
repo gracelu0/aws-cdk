@@ -971,15 +971,14 @@ export class Pipeline extends PipelineBase {
 
     // generate a role in the other stack, that the Pipeline will assume for executing this action
     const isRemoveRootPrincipal = FeatureFlags.of(this).isEnabled(cxapi.PIPELINE_REDUCE_STAGE_ROLE_TRUST_SCOPE);
-    process.stdout.write(`-----ROLENAME: ${this.role.roleName}`);
     const roleProps = isRemoveRootPrincipal ? {
       assumedBy: new iam.PrincipalWithConditions(
         new iam.AccountPrincipal(pipelineStack.account),
         {
           ArnLike: {
-            'aws:PrincipalArn': this.role.roleName === undefined
-              ? `arn:*:iam::${pipelineStack.account}:role/*`
-              : `arn:*:iam::${pipelineStack.account}:role/${this.role.roleName}`,
+            'aws:PrincipalArn': this.role._roleNameExplicitlySet
+              ? `arn:*:iam::${pipelineStack.account}:role/${this.role.roleName}`
+              : `arn:*:iam::${pipelineStack.account}:role/*`,
           },
         },
       ),
@@ -989,9 +988,9 @@ export class Pipeline extends PipelineBase {
       roleName: PhysicalName.GENERATE_IF_NEEDED,
     };
 
-    if (isRemoveRootPrincipal && this.role.roleName === undefined) {
+    if (isRemoveRootPrincipal && !this.role._roleNameExplicitlySet) {
       Annotations.of(this).addWarningV2('@aws-cdk/aws-codepipeline:wildcardRoleTrustPolicy', 'The default trust policy is using a wildcard (*) in the condition key.' +
-        'It is recommended that you either provide a role name or scope down the policy condition by specifying the role name instead of `*`.');
+        'It is recommended that you either provide a role name or scope down the policy condition by specifying the role name instead of `*` for best security practices.');
     }
 
     const ret = new iam.Role(otherAccountStack,

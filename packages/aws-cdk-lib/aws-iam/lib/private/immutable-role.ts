@@ -1,5 +1,5 @@
 import { Construct, Dependable, DependencyGroup } from 'constructs';
-import { Resource } from '../../../core';
+import { Resource, Token } from '../../../core';
 import { addConstructMetadata, MethodMetadata } from '../../../core/lib/metadata-resource';
 import { Grant } from '../grant';
 import { IManagedPolicy } from '../managed-policy';
@@ -29,6 +29,7 @@ export class ImmutableRole extends Resource implements IRole {
   public readonly roleArn = this.role.roleArn;
   public readonly roleName = this.role.roleName;
   public readonly stack = this.role.stack;
+  public readonly _roleNameExplicitlySet = !Token.isUnresolved(this.role.roleName) ? true : false;
 
   constructor(scope: Construct, id: string, private readonly role: IRole, private readonly addGrantsToResources: boolean) {
     super(scope, id, {

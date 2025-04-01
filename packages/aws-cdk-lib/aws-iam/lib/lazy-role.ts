@@ -6,6 +6,7 @@ import { PolicyStatement } from './policy-statement';
 import { AddToPrincipalPolicyResult, IPrincipal, PrincipalPolicyFragment } from './principals';
 import { IRole, Role, RoleProps } from './role';
 import * as cdk from '../../core';
+import { Token } from '../../core';
 import { addConstructMetadata, MethodMetadata } from '../../core/lib/metadata-resource';
 
 /**
@@ -30,6 +31,7 @@ export class LazyRole extends cdk.Resource implements IRole {
   public readonly grantPrincipal: IPrincipal = this;
   public readonly principalAccount: string | undefined = this.env.account;
   public readonly assumeRoleAction: string = 'sts:AssumeRole';
+  public readonly _roleNameExplicitlySet: boolean;
 
   private role?: Role;
   private readonly statements = new Array<PolicyStatement>();
@@ -40,6 +42,7 @@ export class LazyRole extends cdk.Resource implements IRole {
     super(scope, id);
     // Enhanced CDK Analytics Telemetry
     addConstructMetadata(this, props);
+    this._roleNameExplicitlySet = !Token.isUnresolved(props.roleName) ? true : false;
   }
 
   /**
